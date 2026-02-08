@@ -1,6 +1,6 @@
 import time
 from openai import OpenAI
-from config import LLM_API_KEY
+from .config import LLM_API_KEY
 
 # Initialize OpenAI client
 client = OpenAI(api_key=LLM_API_KEY)

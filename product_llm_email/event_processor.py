@@ -1,5 +1,5 @@
-from config import BLOCKED_KEYWORDS, CONFIDENCE_THRESHOLD, RECIPIENT_LIST
-from llm_generator import build_prompt, generate_content
+from .config import BLOCKED_KEYWORDS, CONFIDENCE_THRESHOLD, RECIPIENT_LIST
+from .llm_generator import build_prompt, generate_content
 
 ANGLE_BY_EVENT = {
     "fumble": ["humor", "relief"],

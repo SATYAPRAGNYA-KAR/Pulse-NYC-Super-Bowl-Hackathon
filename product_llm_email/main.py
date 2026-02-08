@@ -1,7 +1,7 @@
 import os
 import json
 import time
-from event_processor import process_event
+from .event_processor import process_event
 
 # Paths relative to this file
 current_dir = os.path.dirname(__file__)

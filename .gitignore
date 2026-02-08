@@ -2,3 +2,4 @@
 hackathonenv
 .env
 product_llm_email/__pycache__
+try.py
