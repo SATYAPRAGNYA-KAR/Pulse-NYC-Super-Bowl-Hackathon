@@ -1,3 +1,4 @@
 .venv
 hackathonenv
-product_llm_email/config.py
+.env
+product_llm_email/__pycache__
