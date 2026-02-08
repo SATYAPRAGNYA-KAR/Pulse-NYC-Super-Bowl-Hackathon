@@ -1,0 +1,18 @@
+[
+  {
+    "product_id": "local_pizza",
+    "name": "Joe's Pizza",
+    "category": "Food",
+    "brand_tone": "casual",
+    "risk_tolerance": "high",
+    "cooldown_sec": 600
+  },
+  {
+    "product_id": "coffee_shop",
+    "name": "Morning Brew",
+    "category": "Beverage",
+    "brand_tone": "friendly",
+    "risk_tolerance": "low",
+    "cooldown_sec": 600
+  }
+]
