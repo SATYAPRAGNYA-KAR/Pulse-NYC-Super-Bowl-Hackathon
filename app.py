@@ -82,12 +82,4 @@ if __name__ == "__main__":
             print(row)
             event_detector.feed_new_event((row[1], int(row[2])))
 
-    print(event_detector.score_logs)
-    x_axis = [5 * (i + 1) for i in range(len(event_detector.score_logs))]
-    plt.plot(x_axis, event_detector.score_logs, marker='o')
-    plt.xlabel("Time (arbitrary units, 5 * index)")
-    plt.ylabel("Touchdown Score")
-    plt.title("Touchdown Scores Over Events")
-    plt.grid(True)
-    plt.show()
-    app.run()
+
