@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Bowl AI - Real-Time Video Processing</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>🏈 Super Bowl AI</h1>
+                <span class="tagline">Real-Time Ad Intelligence</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" data-page="main">Home</a>
+                <a href="#" class="nav-link" data-page="analytics">Analytics</a>
+                <a href="#" class="nav-link" data-page="ads">Generated Ads</a>
+                <a href="#" class="nav-link" data-page="about">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Main Page -->
+        <div id="page-main" class="page active">
+            <div class="hero-section">
+                <h2>Transform Game Moments into Marketing Magic</h2>
+                <p>Process Super Bowl videos in real-time and generate timely ads for your business</p>
+            </div>
+
+            <!-- Video Input Section -->
+            <div class="video-input-section card">
+                <h3>Enter Video URL</h3>
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="videoUrlInput" 
+                        placeholder="Paste YouTube URL here (e.g., https://www.youtube.com/watch?v=...)"
+                        class="video-input"
+                    >
+                    <button id="loadVideoBtn" class="btn btn-primary">Load Video</button>
+                </div>
+                <div id="videoError" class="error-message"></div>
+                <div id="videoInfo" class="video-info"></div>
+            </div>
+
+            <!-- Video Player and Processing Section -->
+            <div id="processingSection" class="processing-section" style="display: none;">
+                <div class="split-layout">
+                    <!-- Left: Video Player -->
+                    <div class="video-container card">
+                        <h3>Video Player</h3>
+                        <div class="video-wrapper">
+                            <iframe 
+                                id="videoPlayer" 
+                                width="100%" 
+                                height="400"
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+                        <div class="video-controls">
+                            <button id="playBtn" class="btn btn-secondary">▶ Play</button>
+                            <button id="pauseBtn" class="btn btn-secondary">⏸ Pause</button>
+                            <span class="timestamp" id="currentTime">0:00</span>
+                            <span class="separator">/</span>
+                            <span class="timestamp" id="totalTime">0:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Real-Time Processing -->
+                    <div class="processing-container card">
+                        <h3>Real-Time Analysis</h3>
+                        
+                        <!-- Processing Status -->
+                        <div class="processing-status">
+                            <div class="status-item">
+                                <span class="status-label">Status:</span>
+                                <span id="processingStatus" class="status-value">Ready</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Current Chunk:</span>
+                                <span id="currentChunk" class="status-value">0</span>
+                            </div>
+                            <div class="status-item">
+                                <span class="status-label">Latency:</span>
+                                <span id="latency" class="status-value">0ms</span>
+                            </div>
+                        </div>
+
+                        <!-- Transcript Display -->
+                        <div class="transcript-section">
+                            <h4>Live Transcript</h4>
+                            <div id="transcriptDisplay" class="transcript-display">
+                                Transcript will appear here as video plays...
+                            </div>
+                        </div>
+
+                        <!-- Audio Visualization -->
+                        <div class="audio-viz-section">
+                            <h4>Audio Intensity</h4>
+                            <canvas id="audioCanvas" width="400" height="100"></canvas>
+                        </div>
+
+                        <!-- Event Detection -->
+                        <div class="event-detection">
+                            <h4>Detected Events</h4>
+                            <div id="eventsList" class="events-list">
+                                No events detected yet...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing Timeline -->
+                <div class="timeline-section card">
+                    <h3>Processing Timeline</h3>
+                    <div id="timeline" class="timeline">
+                        <!-- Timeline chunks will be added dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="page-analytics" class="page">
+            <div class="hero-section">
+                <h2>Analytics Dashboard</h2>
+                <p>Insights from processed video chunks</p>
+            </div>
+            
+            <div class="analytics-grid">
+                <div class="card stat-card">
+                    <h4>Total Chunks Processed</h4>
+                    <p class="stat-number" id="totalChunks">0</p>
+                </div>
+                <div class="card stat-card">
+                    <h4>Avg Processing Time</h4>
+                    <p class="stat-number" id="avgProcessing">0s</p>
+                </div>
+                <div class="card stat-card">
+                    <h4>Events Detected</h4>
+                    <p class="stat-number" id="eventsDetected">0</p>
+                </div>
+                <div class="card stat-card">
+                    <h4>Peak Excitement</h4>
+                    <p class="stat-number" id="peakExcitement">0%</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Chunk Analysis</h3>
+                <div id="chunksTable" class="chunks-table">
+                    <!-- Table will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Generated Ads Page -->
+        <div id="page-ads" class="page">
+            <div class="hero-section">
+                <h2>Generated Advertisements</h2>
+                <p>AI-powered ads based on game moments</p>
+            </div>
+            
+            <div id="adsGallery" class="ads-gallery">
+                <div class="empty-state">
+                    <p>No ads generated yet. Start processing a video to see AI-generated ads!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Page -->
+        <div id="page-about" class="page">
+            <div class="hero-section">
+                <h2>About This Project</h2>
+                <p>Built for the Pulse NYC Super Bowl LX Hackathon</p>
+            </div>
+            
+            <div class="card about-content">
+                <h3>How It Works</h3>
+                <div class="features-list">
+                    <div class="feature-item">
+                        <span class="feature-icon">⚡</span>
+                        <div>
+                            <h4>Real-Time Processing</h4>
+                            <p>Video is processed in 5-second chunks as it plays, achieving sub-45 second latency</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🎤</span>
+                        <div>
+                            <h4>Speech-to-Text</h4>
+                            <p>Advanced transcription using OpenAI Whisper for accurate commentary capture</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        <div>
+                            <h4>Audio Analysis</h4>
+                            <p>Amplitude tracking detects exciting moments like touchdowns and big plays</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🤖</span>
+                        <div>
+                            <h4>AI-Powered Ads</h4>
+                            <p>Generate timely, relevant marketing content based on live game events</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Tech Stack</h3>
+                <div class="tech-stack">
+                    <span class="tech-badge">Flask</span>
+                    <span class="tech-badge">Python</span>
+                    <span class="tech-badge">OpenAI Whisper</span>
+                    <span class="tech-badge">FFmpeg</span>
+                    <span class="tech-badge">yt-dlp</span>
+                    <span class="tech-badge">JavaScript</span>
+                    <span class="tech-badge">CSS3</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="/app.js"></script>
+</body>
+</html>
