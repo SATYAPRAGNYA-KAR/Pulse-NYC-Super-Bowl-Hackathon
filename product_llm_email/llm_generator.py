@@ -43,6 +43,7 @@ Generate:
 """
     return prompt
 
+
 # Generate content with retries & fallback
 def generate_content(prompt):
     for attempt in range(3):
@@ -54,20 +55,35 @@ def generate_content(prompt):
             )
             output = response.choices[0].message.content
             break
-        except Exception as e:  # catch everything; network errors included
+        except Exception as e:
             print(f"[Attempt {attempt+1}] LLM API error: {e}. Retrying in 2 sec...")
             time.sleep(2)
     else:
         print("All retries failed. Using demo content.")
-        output = "Demo Subject\nDemo email body"
+        output = "Special Offer!\nOrder now and enjoy our latest deal."
 
-    # Split subject/body
+    # -------- CLEAN SUBJECT & BODY --------
     if "\n" in output:
-        parts = output.split("\n", 1)
-        subject = parts[0].strip()
-        body = parts[1].strip()
+        subject_raw, body_raw = output.split("\n", 1)
     else:
-        subject = "Special Offer!"
-        body = output.strip()
+        subject_raw = output
+        body_raw = ""
 
-    return {"subject": subject, "body": body, "cta": "Order Now"}
+    # Clean subject
+    subject = subject_raw.strip()
+    subject = subject.replace("**", "")
+    subject = subject.replace("Subject Line:", "")
+    subject = subject.replace("Subject:", "")
+    subject = subject.strip()
+
+    # Clean body
+    body = body_raw.strip()
+    body = body.replace("**", "")
+    body = body.replace("Email Body:", "")
+    body = body.strip()
+
+    return {
+        "subject": subject,
+        "body": body,
+        "cta": "Order Now"
+    }

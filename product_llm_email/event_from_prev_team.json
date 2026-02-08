@@ -1,5 +1,5 @@
 {
-  "type": "fumble",
-  "confidence": 0.92,
-  "keywords": ["ball", "loose", "mistake"]
+  "type": "touchdown",
+  "confidence": 0.95,
+  "keywords": ["score", "goal", "success", "win", "achievement"]
 }
