@@ -61,7 +61,10 @@ class EventDetector:
                 scores[event] += len(chunk[0])
             decay = decay * DECIBLE_DECAY_FACTOR
 
-        print("SCOREWS", self.count, scores['touchdown'])
+        print("SCORES", self.count, scores['touchdown'])
+        if scores['touchdown'] > 1000:
+
+            print("TOUCHDOWN")
         self.score_logs.append(scores['touchdown'])
 
 
@@ -80,7 +83,7 @@ event_detector = EventDetector()
 # ----------------------------
 # CONFIG
 # ----------------------------
-VIDEO_PATH = "./videoplayback.mp4"
+VIDEO_PATH = "./videoplayback_2.mp4"
 AUDIO_PATH = "audio.wav"
 CHUNK_DIR = "chunks"
 CSV_PATH = "output.csv"
