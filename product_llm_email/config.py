@@ -8,7 +8,7 @@ load_dotenv()
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 
 # Recipients for demo
-RECIPIENT_LIST = ["customer1@example.com", "customer2@example.com"]
+RECIPIENT_LIST = ["nilarnabdebnath@gmail.com", "mathurshipra33@gmail.com"]
 
 # Safety & confidence thresholds
 BLOCKED_KEYWORDS = {"injury", "hurt", "down", "medical"}
