@@ -17,11 +17,16 @@ const state = {
     }
 };
 
-// API Configuration
-const API_BASE = window.location.origin;
+// API Configuration - FIXED
+const API_BASE = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+    ? 'http://localhost:5000'
+    : window.location.origin;
+
+console.log('🌐 API Base URL:', API_BASE);
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM loaded, initializing app...');
     initializeApp();
 });
 
@@ -72,8 +77,10 @@ function setupVideoInput() {
     const urlInput = document.getElementById('videoUrlInput');
     
     loadBtn.addEventListener('click', () => {
+        console.log('🔘 Load button clicked');
         const url = urlInput.value.trim();
         if (url) {
+            console.log('📹 Loading video:', url);
             loadVideo(url);
         } else {
             showError('Please enter a valid YouTube URL');
@@ -89,10 +96,13 @@ function setupVideoInput() {
 }
 
 async function loadVideo(url) {
+    console.log('🚀 loadVideo called with:', url);
     showLoading(true);
     hideError();
     
     try {
+        console.log('📡 Fetching video info from:', `${API_BASE}/api/video/info`);
+        
         // Get video info from backend
         const response = await fetch(`${API_BASE}/api/video/info`, {
             method: 'POST',
@@ -102,7 +112,16 @@ async function loadVideo(url) {
             body: JSON.stringify({ video_url: url })
         });
         
+        console.log('📥 Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Response not OK:', errorText);
+            throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+        
         const data = await response.json();
+        console.log('✅ Response data:', data);
         
         if (!data.success) {
             throw new Error(data.error || 'Failed to load video');
@@ -112,6 +131,11 @@ async function loadVideo(url) {
         state.currentVideoUrl = url;
         state.videoDuration = data.duration;
         state.videoTitle = data.title;
+        
+        console.log('💾 Video info stored:', {
+            duration: state.videoDuration,
+            title: state.videoTitle
+        });
         
         // Show video info
         displayVideoInfo(data);
@@ -128,8 +152,8 @@ async function loadVideo(url) {
         showToast('Video loaded successfully!', 'success');
         
     } catch (error) {
-        console.error('Error loading video:', error);
-        showError(error.message);
+        console.error('❌ Error loading video:', error);
+        showError(`Error: ${error.message}`);
     } finally {
         showLoading(false);
     }
@@ -150,54 +174,78 @@ function displayVideoInfo(data) {
 let playerReady = false;
 
 function setupYouTubePlayer() {
+    console.log('🎥 Setting up YouTube player...');
+    
     // YouTube API will call this when ready
     window.onYouTubeIframeAPIReady = () => {
         playerReady = true;
-        console.log('YouTube API ready');
+        console.log('✅ YouTube API ready');
     };
 }
 
 function loadYouTubeVideo(url) {
+    console.log('📺 Loading YouTube video:', url);
     const videoId = extractVideoId(url);
     
     if (!videoId) {
-        showError('Invalid YouTube URL');
+        showError('Invalid YouTube URL - could not extract video ID');
+        console.error('❌ Invalid video ID from URL:', url);
         return;
     }
+    
+    console.log('🆔 Video ID:', videoId);
     
     // Wait for API to be ready
     const checkReady = setInterval(() => {
         if (window.YT && window.YT.Player) {
             clearInterval(checkReady);
+            console.log('✅ YouTube Player API available, creating player...');
             createPlayer(videoId);
+        } else {
+            console.log('⏳ Waiting for YouTube API...');
         }
     }, 100);
+    
+    // Timeout after 10 seconds
+    setTimeout(() => {
+        if (!playerReady) {
+            clearInterval(checkReady);
+            console.error('❌ YouTube API failed to load');
+            showError('YouTube player failed to load. Please refresh the page.');
+        }
+    }, 10000);
 }
 
 function createPlayer(videoId) {
-    state.player = new YT.Player('videoPlayer', {
-        videoId: videoId,
-        playerVars: {
-            'playsinline': 1,
-            'controls': 1,
-            'modestbranding': 1
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
-        }
-    });
+    try {
+        console.log('🎬 Creating player for video ID:', videoId);
+        state.player = new YT.Player('videoPlayer', {
+            videoId: videoId,
+            playerVars: {
+                'playsinline': 1,
+                'controls': 1,
+                'modestbranding': 1
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange,
+                'onError': onPlayerError
+            }
+        });
+    } catch (error) {
+        console.error('❌ Error creating player:', error);
+        showError('Failed to create video player');
+    }
 }
 
 function onPlayerReady(event) {
-    console.log('Player ready');
+    console.log('✅ Player ready');
     setupPlayerControls();
-    
-    // Start time tracking
     startTimeTracking();
 }
 
 function onPlayerStateChange(event) {
+    console.log('🎬 Player state changed:', event.data);
     if (event.data == YT.PlayerState.PLAYING) {
         state.isPlaying = true;
         updateStatus('Playing');
@@ -208,6 +256,18 @@ function onPlayerStateChange(event) {
         state.isPlaying = false;
         updateStatus('Ended');
     }
+}
+
+function onPlayerError(event) {
+    console.error('❌ Player error:', event.data);
+    const errorMessages = {
+        2: 'Invalid video ID',
+        5: 'HTML5 player error',
+        100: 'Video not found',
+        101: 'Video not allowed to be played in embedded players',
+        150: 'Video not allowed to be played in embedded players'
+    };
+    showError(errorMessages[event.data] || 'Video player error');
 }
 
 function setupPlayerControls() {
@@ -243,7 +303,7 @@ function startTimeTracking() {
             // Prefetch next chunk
             prefetchNextChunk(chunkIndex);
         }
-    }, 500); // Check every 500ms
+    }, 500);
 }
 
 // Chunk Processing
@@ -254,6 +314,8 @@ async function processChunkIfNeeded(chunkIndex) {
     if (state.processedChunks[startTime] || state.processingQueue.includes(startTime)) {
         return;
     }
+    
+    console.log(`🎞️ Processing chunk ${chunkIndex} at ${startTime}s`);
     
     // Add to queue
     state.processingQueue.push(startTime);
@@ -274,6 +336,10 @@ async function processChunkIfNeeded(chunkIndex) {
             })
         });
         
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (!data.success) {
@@ -283,6 +349,8 @@ async function processChunkIfNeeded(chunkIndex) {
         // Calculate latency
         const latency = Date.now() - processingStartTime;
         document.getElementById('latency').textContent = `${latency}ms`;
+        
+        console.log(`✅ Chunk ${chunkIndex} processed in ${latency}ms${data.from_cache ? ' (cached)' : ''}`);
         
         // Store processed chunk
         state.processedChunks[startTime] = data;
@@ -306,11 +374,10 @@ async function processChunkIfNeeded(chunkIndex) {
             state.processingQueue.splice(queueIndex, 1);
         }
         
-        console.log(`Chunk ${chunkIndex} processed in ${latency}ms`);
-        
     } catch (error) {
-        console.error('Error processing chunk:', error);
+        console.error(`❌ Error processing chunk ${chunkIndex}:`, error);
         updateTimelineChunk(chunkIndex, 'error');
+        showToast(`Error processing chunk: ${error.message}`, 'error');
         
         // Remove from queue
         const queueIndex = state.processingQueue.indexOf(startTime);
@@ -326,7 +393,6 @@ async function prefetchNextChunk(currentChunkIndex) {
     
     // Only prefetch if not already processed or processing
     if (!state.processedChunks[startTime] && !state.processingQueue.includes(startTime)) {
-        // Don't await - let it process in background
         processChunkIfNeeded(nextChunkIndex);
     }
 }
@@ -435,6 +501,7 @@ function initializeTimeline() {
     timeline.innerHTML = '';
     
     const totalChunks = Math.ceil(state.videoDuration / state.chunkDuration);
+    console.log(`📊 Creating timeline with ${totalChunks} chunks`);
     
     for (let i = 0; i < totalChunks; i++) {
         const chunk = document.createElement('div');
@@ -473,6 +540,7 @@ function updateTimelineChunk(chunkIndex, status) {
         chunk.classList.add('completed');
         statusDiv.textContent = 'Done';
     } else if (status === 'error') {
+        chunk.classList.add('error');
         statusDiv.textContent = 'Error';
     }
 }
@@ -510,6 +578,7 @@ function showLoading(show) {
 }
 
 function showError(message) {
+    console.error('⚠️ Showing error:', message);
     const errorDiv = document.getElementById('videoError');
     errorDiv.textContent = message;
     errorDiv.classList.add('show');
@@ -521,6 +590,7 @@ function hideError() {
 }
 
 function showToast(message, type = 'success') {
+    console.log(`📢 Toast (${type}):`, message);
     const container = document.getElementById('toastContainer');
     
     const toast = document.createElement('div');
@@ -539,15 +609,26 @@ function showToast(message, type = 'success') {
 }
 
 async function checkBackendHealth() {
+    console.log('🏥 Checking backend health...');
     try {
         const response = await fetch(`${API_BASE}/health`);
         const data = await response.json();
         
+        console.log('✅ Backend health check:', data);
+        
         if (data.status === 'healthy') {
-            console.log('Backend is healthy');
+            console.log('✅ Backend is healthy');
+        } else {
+            console.warn('⚠️ Backend is degraded:', data);
+            showToast('Warning: Some features may not work properly', 'warning');
         }
     } catch (error) {
-        console.error('Backend health check failed:', error);
-        showToast('Warning: Backend may not be running', 'warning');
+        console.error('❌ Backend health check failed:', error);
+        showToast('Warning: Cannot connect to backend server', 'error');
     }
 }
+
+// Add console message on load
+console.log('%c🏈 Super Bowl AI - Real-Time Video Processing', 'color: #2563eb; font-size: 20px; font-weight: bold;');
+console.log('%cAPI Base:', 'color: #10b981; font-weight: bold;', API_BASE);
+console.log('%cReady to process videos!', 'color: #10b981;');
